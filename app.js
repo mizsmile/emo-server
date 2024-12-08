@@ -22,6 +22,10 @@ const app = express();
 // 특정 도메인에만 허용하려면 corsOptions 를 이용하여 설정 가능
 app.use(cors());
 
+// JSON 형식의 본문 파싱 미들웨어 추가 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // mariaDB 연결
 const maria = require('./database/connect/mariadb');
 maria.connect();
@@ -67,6 +71,26 @@ app.get('/api/users/:username', async (req, res) => {
 })
 
 // 사용자 등록 (POST)
+app.post('/api/users/add', async (req, res) => {
+  console.log('/api/users/add :>> ', req.body);
+  // 요청받은 body 파라미터 중에서 username, email, password 변수 선언
+  const {username, email, password} = req.body
+
+  const sql = 'INSERT INTO t_user (username, email, profile, created_at, password) VALUES(?, ?, NULL, now(), ?)';
+  // 위 쿼리 ? 자리에 들어갈 파라미터를 순서!!!대로 params array 에 넣어줌
+  var params = [username, email, password];
+
+  maria.query(sql, params, function(err, rows, fields) {
+    if(!err){
+      console.log("succ", rows);
+      res.send({ok: true, username: username});
+    }
+    else {
+      console.log("err : ", err);
+    }
+  });
+})
+
 // 모든 게시글 list 조회
 // 특정 게시글 조회
 // 게시글 등록
